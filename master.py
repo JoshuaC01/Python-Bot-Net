@@ -11,76 +11,28 @@ from functools import partial
 
 # --- Tab Scripts --- #
 from tabs import managementTab
+from tabs import listeningTab
 
-class currentPortsPanel(QGroupBox):
-	def __init__(self, mainLayout):
-		super().__init__("Listening On Ports")
-		self.mainLayout = mainLayout
-		self.initUI()
-
-	def initUI(self):
-		
-
-		self.updatePorts()
-		#vBox.addWidget(refreshButton)
-		
-		
-
-	def updatePorts(self):
-		vBox = QVBoxLayout()
-		for port in self.mainLayout.mainWindow.availablePorts:
-			text = QLabel(str(port))
-			vBox.addWidget(text)
-		vBox.addStretch(1)
-
-		hBox = QHBoxLayout()
-
-		# portInput = QLineEdit()
-		# portInput.setFixedWidth(100)
-		# hBox.addWidget(portInput)
-		# hBox.addStretch(1)
-
-		vBox.addLayout(hBox)
-
-		self.mainLayout.deleteLayout(self.layout())
-		self.setLayout(vBox)
-
-class listeningTab(QWidget):
-	def __init__(self, mainWindow):
+class logPanel(QWidget):
+	def __init__(self):
 		super().__init__()
-
-		self.mainWindow = mainWindow
-
 		self.initUI()
 
 	def initUI(self):
-		self.grid = QGridLayout()
-		self.grid.setSpacing(10)
-
-		dataBox = QGroupBox()
-
-		addPortBox = QLineEdit()
+		self.setWindowTitle('CFD - Log') 
 
 		vBox = QVBoxLayout()
-		vBox.addWidget(addPortBox)
 
-		dataBox.setLayout(vBox)
-		self.currentPortsPanel = currentPortsPanel(self)
+		self.logText = QTextEdit()
+		self.logText.setReadOnly(True)
+		self.log("Testing Logging Feature")
 
-		self.grid.addWidget(dataBox, 0, 0, 1, 1)
-		self.grid.addWidget(self.currentPortsPanel, 1, 2, 1, 1)
+		vBox.addWidget(self.logText)
+		self.setLayout(vBox)
+		self.show()
 
-		self.setLayout(self.grid)
-
-	def deleteLayout(self, cur_lay):
-		if cur_lay is not None:
-			while cur_lay.count():
-				item = cur_lay.takeAt(0)
-				widget = item.widget()
-				if widget is not None:
-					widget.deleteLater()
-				else:
-					self.deleteLayout(item.layout())
+	def log(self, text):
+		self.logText.setText(self.logText.toPlainText() + text + "\n")
 
 class toolbar(QMainWindow):
     
@@ -88,8 +40,6 @@ class toolbar(QMainWindow):
 		super().__init__()
 		self.availablePorts = [4444]
 		self.initUI()
-
-
 
 	def center(self):
 		qr = self.frameGeometry()
@@ -154,42 +104,38 @@ class toolbar(QMainWindow):
 		self.setWindowTitle('CFD - Botnet Manager')  
 		self.show()
 
+		availableConns = []
+		for i in range(len(self.availablePorts)):
+			availableConns.append(extra.NewConnection(self.availablePorts[i]))
+
+		self.allConns = availableConns
+
 	def createTab(self, tabNumber, tabName):
 		switchAct = QAction(QIcon(), '&' + tabName, self)
 		switchAct.triggered.connect(partial(self.switchTab, tabNumber))
 		return switchAct
 
 	def switchTab(self, tabNumber):
-		for tab in self.tabs:
-			tab.hide()
-		self.tabs[tabNumber].show()
-	# def contextMenuEvent(self, event):
-	# 	# --- Context Menu --- #
-	# 	cmenu = QMenu(self)
+		self.visibleWindow.setCurrentIndex(tabNumber)
 
-	# 	quitAct = cmenu.addAction("Quit")
+if __name__ == '__main__':
+	app = QApplication(sys.argv)
 
-	# 	action = cmenu.exec_(self.mapToGlobal(event.pos()))
+	ex = toolbar()
 
-	# 	if action == quitAct:
-	# 		qApp.quit()
-
-app = QApplication(sys.argv)
-
-ex = toolbar()
-
-tabsList = [managementTab.init(ex), listeningTab(ex)]
-
-ex.tabs = tabsList
+	tabsList = [managementTab.init(ex), listeningTab.init(ex)]
 
 
-for tab in tabsList:
-	ex.visibleWindow.addWidget(tab)
-	tab.hide()
+	ex.tabs = tabsList
 
-tabsList[0].show()
+	for tab in tabsList:
+		ex.visibleWindow.addWidget(tab)
 
-#switchTab(0, tabs, ex)
+	ex.visibleWindow.setCurrentIndex(0)
 
-sys.exit(app.exec_())
+	ex.logPanel = logPanel()
+
+	#switchTab(0, tabs, ex)
+
+	sys.exit(app.exec_())
 

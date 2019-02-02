@@ -27,7 +27,7 @@ def createConnection(port):
 
 def updateConns(allConns):
 	newConns = []
-	oldConns = []
+	oldConns = []   
 	for connection in allConns:
 		if connection.active == True:
 			try:

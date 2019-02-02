@@ -8,25 +8,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 import extra, masterHelper
 import threading, time
 from functools import partial
-
-class logPanel(QGroupBox):
-	def __init__(self, mainLayout):
-		super().__init__("Log")
-		self.mainLayout = mainLayout
-		self.initUI()
-
-	def initUI(self):
-		vBox = QVBoxLayout()
-
-		self.logText = QTextEdit()
-		self.logText.setReadOnly(True)
-		self.log("Testing Logging Feature")
-
-		vBox.addWidget(self.logText)
-		self.setLayout(vBox)
-
-	def log(self, text):
-		self.logText.setText(self.logText.toPlainText() + text + "\n")
+from master import *
 
 class settingsPanel(QGroupBox):
 	def __init__(self, mainLayout):
@@ -45,16 +27,13 @@ class settingsPanel(QGroupBox):
 		vBox.addStretch(1)
 		self.setLayout(vBox)
 
-
-
-
 class portScanner(QThread):
 
 	signal = pyqtSignal('PyQt_PyObject')
 
-	def __init__(self, ports):
+	def __init__(self, mainLayout):
 		QThread.__init__(self)
-		self.allConns = ports
+		self.mainLayout = mainLayout
 
 	def __del__(self):
 		self.wait()
@@ -62,8 +41,8 @@ class portScanner(QThread):
 	def run(self):
 		print("Starting Scan")
 		while True:
-			self.data = masterHelper.updateConns(self.allConns)
-			self.allConns = self.data[0]
+			self.data = masterHelper.updateConns(self.mainLayout.mainWindow.allConns)
+			self.mainLayout.mainWindow.allConns = self.data[0]
 			self.signal.emit(self.data)
 			time.sleep(1)
 
@@ -72,31 +51,22 @@ class init(QWidget):
 		super().__init__()
 
 		self.mainWindow = mainWindow
-
-		availableConns = []
-		for i in range(len(self.mainWindow.availablePorts)):
-			availableConns.append(extra.NewConnection(self.mainWindow.availablePorts[i]))
-
-		self.allConns = availableConns
-
-		
-
 		self.initUI()
 
 		self.startPortScanner()
 
 	def startPortScanner(self):
-		self.scanThread = portScanner(self.allConns)
+		self.scanThread = portScanner(self)
 		self.scanThread.signal.connect(self.handleScannerOutput)
 		self.scanThread.start()
 
 	def handleScannerOutput(self, output):
 		self.refreshPorts(output[0])
 		for connection in output[1]:
-			self.logPanel.log("Recieved connection from: " + connection.hostname + "(" + connection.os + ") - " + str(connection.port))
+			self.mainWindow.logPanel.log("Recieved connection from: " + connection.hostname + "(" + connection.os + ") - " + str(connection.port))
 
 		for connection in output[2]:
-			self.logPanel.log("Lost connection from: " + connection.hostname + "(" + connection.os + ") - " + str(connection.port))
+			self.mainWindow.logPanel.log("Lost connection from: " + connection.hostname + "(" + connection.os + ") - " + str(connection.port))
 
 	def initUI(self):
 		self.grid = QGridLayout()
@@ -108,14 +78,12 @@ class init(QWidget):
 
 		self.settingsPanel = settingsPanel(self)
 
-		self.logPanel = logPanel(self)
-
 		#self.currentPortsPanel = currentPortsPanel(self)
 
 		self.grid.addWidget(self.portList, 0, 1, 2, 1)
 		self.grid.addWidget(self.settingsPanel, 0, 2, 1, 1)
 		#self.grid.addWidget(self.currentPortsPanel, 1, 2, 1, 1)
-		self.grid.addWidget(self.logPanel, 0, 3, 2, 2)
+		#self.grid.addWidget(self.mainWindow.logPanel, 0, 3, 2, 2)
 
 		#self.refreshPorts()
 
@@ -157,7 +125,7 @@ class init(QWidget):
 
 	def disconnectClient(self, connection):
 		connection.conn.send("disconnect".encode("utf8"))
-		self.logPanel.log("Disconnect: " + connection.hostname + ", At Port: " + str(connection.port))
+		self.mainWindow.logPanel.log("Disconnect: " + connection.hostname + ", At Port: " + str(connection.port))
 
 	def clearPorts(self):
 		vBox = QVBoxLayout()
