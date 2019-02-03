@@ -5,3 +5,5 @@ class NewConnection:
 		self.conn = None
 		self.hostname = ""
 		self.os = ""
+		self.shellOpen = False
+		self.shell = None

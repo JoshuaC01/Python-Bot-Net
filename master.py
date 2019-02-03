@@ -12,6 +12,7 @@ from functools import partial
 # --- Tab Scripts --- #
 from tabs import managementTab
 from tabs import listeningTab
+from windows import shell
 
 class logPanel(QWidget):
 	def __init__(self):
@@ -29,6 +30,7 @@ class logPanel(QWidget):
 
 		vBox.addWidget(self.logText)
 		self.setLayout(vBox)
+		self.resize(600, 500)
 		self.show()
 
 	def log(self, text):
@@ -83,12 +85,17 @@ class toolbar(QMainWindow):
 		viewStatAct.setChecked(True)
 		viewStatAct.triggered.connect(self.toggleMenu)
 
+		viewLogAct = QAction("View Log", self)
+		viewLogAct.setShortcut("Ctrl+L")
+		viewLogAct.triggered.connect(self.creatLogWindow)
+
 		self.menubar = self.menuBar()
 		fileMenu = self.menubar.addMenu('&File')
 		fileMenu.addAction(exitAct)
 
 		viewMenu = self.menubar.addMenu('&View')
 		viewMenu.addAction(viewStatAct)
+		viewMenu.addAction(viewLogAct)
 
 		# -- TOOLBAR -- #
 		self.toolbar = self.addToolBar('')
@@ -117,6 +124,9 @@ class toolbar(QMainWindow):
 
 	def switchTab(self, tabNumber):
 		self.visibleWindow.setCurrentIndex(tabNumber)
+
+	def creatLogWindow(self):
+		self.logPanel = logPanel()
 
 if __name__ == '__main__':
 	app = QApplication(sys.argv)

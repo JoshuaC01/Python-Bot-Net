@@ -32,7 +32,6 @@ def updateConns(allConns):
 		if connection.active == True:
 			try:
 				connection.conn.send("Checking If Alive".encode("utf8"))
-				text = connection.conn.recv(1024).decode()
 				#print("Already Connected To: " + str(connection.port))
 			except:
 				connection.active = False
