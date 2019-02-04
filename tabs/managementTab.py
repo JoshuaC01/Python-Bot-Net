@@ -112,21 +112,21 @@ class init(QWidget):
 			portDisconnect = QPushButton("Disconnect")
 			portDisconnect.clicked.connect(partial(self.disconnectClient, connection))
 
-			shellBtn = QPushButton("Shell")
-			shellBtn.clicked.connect(partial(self.shellClient, connection))
+			# shellBtn = QPushButton("Shell")
+			# shellBtn.clicked.connect(partial(self.shellClient, connection))
 
-			configBtn = QPushButton("Config")
+			configBtn = QPushButton("Actions")
 			configBtn.clicked.connect(partial(self.configClient, connection))
 
 			if connection.shellOpen or connection.configOpen:
 				portDisconnect.setEnabled(False)
-				shellBtn.setEnabled(False)
+				#shellBtn.setEnabled(False)
 				configBtn.setEnabled(False)
 
 			hBox = QHBoxLayout()
 			hBox.addWidget(portLabel)
 			#hBox.addWidget(portConnect)
-			hBox.addWidget(shellBtn)
+			#hBox.addWidget(shellBtn)
 			hBox.addWidget(configBtn)
 			hBox.addWidget(portDisconnect)
 				
@@ -148,8 +148,7 @@ class init(QWidget):
 				self.mainLayout.mainWindow.allConns.remove(connection)
 		self.mainWindow.logPanel.log("Disconnect: " + connection.hostname + ", At Port: " + str(connection.port))
 
-	def shellClient(self, connection):
-		tempShell = shell.init(connection)
+	
 
 	def configClient(self, connection):
 		tempConfig = connectionSettings.init(connection)
