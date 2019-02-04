@@ -14,6 +14,7 @@ from tabs import managementTab
 from tabs import listeningTab
 from windows import shell
 
+
 class logPanel(QWidget):
 	def __init__(self):
 		super().__init__()
@@ -106,7 +107,7 @@ class toolbar(QMainWindow):
 
 		self.setCentralWidget(self.visibleWindow)
 
-		self.resize(1920, 1080)
+		self.resize(800, 900)
 		self.center()	
 		self.setWindowTitle('CFD - Botnet Manager')  
 		self.show()
@@ -135,7 +136,6 @@ if __name__ == '__main__':
 
 	tabsList = [managementTab.init(ex), listeningTab.init(ex)]
 
-
 	ex.tabs = tabsList
 
 	for tab in tabsList:
@@ -144,8 +144,7 @@ if __name__ == '__main__':
 	ex.visibleWindow.setCurrentIndex(0)
 
 	ex.logPanel = logPanel()
-
-	#switchTab(0, tabs, ex)
+	ex.logPanel.hide()
 
 	sys.exit(app.exec_())
 

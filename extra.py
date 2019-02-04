@@ -7,3 +7,5 @@ class NewConnection:
 		self.os = ""
 		self.shellOpen = False
 		self.shell = None
+		self.configOpen = False
+		self.config = None

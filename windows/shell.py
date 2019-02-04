@@ -23,12 +23,11 @@ class shellReciever(QThread):
 
 	def run(self):
 		try:
-			while True:
-				print("Listening: ")
-				#conn.setTimeout(5)
-				text = self.connection.conn.recv(1024).decode()
-				print("Recieved")
-				self.signal.emit(text)
+			print("Listening: ")
+			#conn.setTimeout(5)
+			text = self.connection.conn.recv(1024).decode()
+			print("Recieved")
+			self.signal.emit(text)
 		except:
 			pass
 
@@ -77,8 +76,6 @@ class init(QWidget):
 		self.resize(600, 500)
 		self.show()
 
-		self.startCommandListener()
-
 	def closeEvent(self, event):
 		self.connection.shellOpen = False
 		self.connection.shell = None
@@ -105,3 +102,4 @@ class init(QWidget):
 	def sendCommand(self, command):
 		commandSender = sendCommand(self.connection, "shell: " + command)
 		commandSender.start()
+		self.startCommandListener()

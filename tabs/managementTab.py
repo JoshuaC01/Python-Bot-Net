@@ -10,6 +10,7 @@ import threading, time
 from functools import partial
 from master import *
 from windows import shell
+from windows import connectionSettings
 
 class settingsPanel(QGroupBox):
 	def __init__(self, mainLayout):
@@ -114,14 +115,19 @@ class init(QWidget):
 			shellBtn = QPushButton("Shell")
 			shellBtn.clicked.connect(partial(self.shellClient, connection))
 
-			if connection.shellOpen:
+			configBtn = QPushButton("Config")
+			configBtn.clicked.connect(partial(self.configClient, connection))
+
+			if connection.shellOpen or connection.configOpen:
 				portDisconnect.setEnabled(False)
 				shellBtn.setEnabled(False)
+				configBtn.setEnabled(False)
 
 			hBox = QHBoxLayout()
 			hBox.addWidget(portLabel)
 			#hBox.addWidget(portConnect)
 			hBox.addWidget(shellBtn)
+			hBox.addWidget(configBtn)
 			hBox.addWidget(portDisconnect)
 				
 			vBox.addLayout(hBox)
@@ -144,6 +150,9 @@ class init(QWidget):
 
 	def shellClient(self, connection):
 		tempShell = shell.init(connection)
+
+	def configClient(self, connection):
+		tempConfig = connectionSettings.init(connection)
 
 	def clearPorts(self):
 		vBox = QVBoxLayout()
