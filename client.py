@@ -64,12 +64,33 @@ while True:
 				filesList = pathlib.Path(currentDirectory)
 				files = []
 				for file in filesList.iterdir():
-					files.append(file.name)
+					if os.path.isfile(file.name):
+						files.append(file.name)
 
 				files = ",".join(files)
 
 				send(conn, files)
 				continue
+
+			if data == "getDirs":
+				filesList = pathlib.Path(currentDirectory)
+				files = []
+				files.append("..")
+				for file in filesList.iterdir():
+					if not os.path.isfile(file.name):
+						files.append(file.name)
+
+				files = ",".join(files)
+
+				send(conn, files)
+				continue
+
+			if checkCommand(data, "cd: ")[0]:
+				args = checkCommand(data, "cd: ")[1]
+				if os.path.isdir(args):
+					print("Changing Directory To: " + args)
+					os.chdir(args)
+					currentDirectory = os.getcwd()
 
 			if checkCommand(data, "shell: ")[0]:
 				args = checkCommand(data, "shell: ")[1]
