@@ -10,6 +10,8 @@ import threading, time
 from functools import partial
 import select
 
+import master
+
 class shellReciever(QThread):
 
 	signal = pyqtSignal('PyQt_PyObject')
@@ -25,7 +27,7 @@ class shellReciever(QThread):
 		try:
 			print("Listening: ")
 			#conn.setTimeout(5)
-			text = self.connection.conn.recv(1024).decode()
+			text = self.connection.conn.recv(1024 * master.chunkSize).decode()
 			print("Recieved")
 			self.signal.emit(text)
 		except:

@@ -13,6 +13,38 @@ import select
 
 from windows import shell
 import stylesheets
+import master
+
+class queryFileData(QThread):
+
+	signal = pyqtSignal('PyQt_PyObject')
+
+	def __init__(self, mainLayout):
+		QThread.__init__(self)
+		self.mainLayout = mainLayout
+
+	def __del__(self):
+		self.exec_()
+
+	def run(self):
+		self.signal.emit([self.getFiles(), self.getDirs()])
+		#self.terminate()
+
+	def getFiles(self):
+		print("Querying For Files")
+		self.mainLayout.connection.conn.send("getFiles".encode("utf8"))
+		string = self.mainLayout.connection.conn.recv(1024 * master.chunkSize).decode()
+		print("Recieved Files")
+		files = string.split(",")
+		return files
+
+	def getDirs(self):
+		print("Querying For Directories")
+		self.mainLayout.connection.conn.send("getDirs".encode("utf8"))
+		string = self.mainLayout.connection.conn.recv(1024 * master.chunkSize).decode()
+		print("Recieved Directories")
+		files = string.split(",")
+		return files
 
 class init(QWidget):
 	def __init__(self, connection):
@@ -30,14 +62,20 @@ class init(QWidget):
 
 	def initUI(self):
 		
-		self.renderDirectory()
+		#self.renderDirectory()
+		self.refreshFileData()
 		
 		self.resize(600, 800)
 		self.show()
 
-	def renderDirectory(self):
-		self.files = self.getFiles()
-		self.dirs = self.getDirs()
+	def handleDirData(self, data):
+		self.renderDirectory(data[0], data[1])
+
+	def renderDirectory(self, files, dirs):
+		print("Rendering Directory")
+		self.files = files
+		self.dirs = dirs
+
 		folderFont = QFont("Times", 8, QFont.Bold)
 		fileFont = QFont("Times", 8) 
 
@@ -75,19 +113,12 @@ class init(QWidget):
 
 	def getCwd(self):
 		self.connection.conn.send("getCwd".encode("utf8"))
-		return self.connection.conn.recv(1024).decode()
+		return self.connection.conn.recv(1024 * master.chunkSize).decode()
 
-	def getFiles(self):
-		self.connection.conn.send("getFiles".encode("utf8"))
-		string = self.connection.conn.recv(1024).decode()
-		files = string.split(",")
-		return files
-
-	def getDirs(self):
-		self.connection.conn.send("getDirs".encode("utf8"))
-		string = self.connection.conn.recv(1024).decode()
-		files = string.split(",")
-		return files
+	def refreshFileData(self):
+		self.scanThread = queryFileData(self)
+		self.scanThread.signal.connect(self.handleDirData)
+		self.scanThread.start()
 
 	def deleteLayout(self, cur_lay):
 		if cur_lay is not None:
@@ -102,9 +133,11 @@ class init(QWidget):
 			sip.delete(cur_lay)
 
 	def changeDir(self, directory):
-		print("Changing To: " + directory)
 		self.connection.conn.send(("cd: " + directory).encode("utf8"))
-		self.renderDirectory()
+		self.cwd = self.getCwd()
+		self.setWindowTitle(self.cwd + " - " + self.connection.hostname)
+		#time.sleep(0.5)
+		self.refreshFileData()
 
 	def readFile(self, file):
 		print("Reading File: " + file)

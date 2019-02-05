@@ -8,9 +8,13 @@ from PyQt5.QtCore import QThread, pyqtSignal
 import extra, masterHelper
 import threading, time
 from functools import partial
-from master import *
+
+
+
 from windows import shell
 from windows import connectionSettings
+
+import master
 
 class settingsPanel(QGroupBox):
 	def __init__(self, mainLayout):
@@ -22,7 +26,7 @@ class settingsPanel(QGroupBox):
 		vBox = QVBoxLayout()
 
 		clearButton = QPushButton("Force Refresh")
-		clearButton.clicked.connect(self.mainLayout.clearPorts)
+		clearButton.clicked.connect(self.mainLayout.runSingleScan)
 
 		#vBox.addWidget(refreshButton)
 		vBox.addWidget(clearButton)
@@ -48,16 +52,38 @@ class portScanner(QThread):
 			self.signal.emit(self.data)
 			time.sleep(1)
 
+class singleScan(QThread):
+
+	signal = pyqtSignal('PyQt_PyObject')
+
+	def __init__(self, mainLayout):
+		QThread.__init__(self)
+		self.mainLayout = mainLayout
+
+	def __del__(self):
+		self.wait()
+
+	def run(self):
+		self.data = masterHelper.updateConns(self.mainLayout.mainWindow.allConns)
+		self.mainLayout.mainWindow.allConns = self.data[0]
+		self.signal.emit(self.data)
+
 class init(QWidget):
 	def __init__(self, mainWindow):
 		super().__init__()
 
 		self.mainWindow = mainWindow
-		self.initUI()
 
 		self.startPortScanner()
 
+		self.initUI()
+
 	def startPortScanner(self):
+		self.scanThread = portScanner(self)
+		self.scanThread.signal.connect(self.handleScannerOutput)
+		self.scanThread.start()
+
+	def runSingleScan(self):
 		self.scanThread = portScanner(self)
 		self.scanThread.signal.connect(self.handleScannerOutput)
 		self.scanThread.start()
@@ -151,7 +177,8 @@ class init(QWidget):
 	
 
 	def configClient(self, connection):
-		tempConfig = connectionSettings.init(connection)
+		tempConfig = master.createWindow(connectionSettings.init, args=connection)
+		#tempConfig = connectionSettings.init(connection)
 
 	def clearPorts(self):
 		vBox = QVBoxLayout()

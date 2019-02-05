@@ -1,5 +1,7 @@
 import socket, os, sys, time, base64, extra
 
+from master import *
+
 def createSocket():
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	s.settimeout(1)
@@ -18,7 +20,7 @@ def bindSocket(s, port):
 
 def acceptSocket(s):
 	conn, addr = s.accept()
-	hostname, os = conn.recv(1024).decode().split(",")
+	hostname, os = conn.recv(1024 * chunkSize).decode().split(",")
 	return (conn, hostname, os)
 
 

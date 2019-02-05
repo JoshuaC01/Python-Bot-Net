@@ -14,6 +14,27 @@ from tabs import managementTab
 from tabs import listeningTab
 from windows import shell
 
+chunkSize = 1
+
+class createWindow(QThread):
+	signal = pyqtSignal('PyQt_PyObject')
+
+	def __init__(self, window, args=None):
+		QThread.__init__(self)
+		self.windowClass = window
+		self.args = args
+		self.run()
+
+	def __del__(self):
+		print("Window Thread Died")
+		self.wait()
+
+	def run(self):
+		print("Creating Window")
+		if self.args == None:
+			self.window = self.windowClass()
+		else:
+			self.window = self.windowClass(self.args)
 
 class logPanel(QWidget):
 	def __init__(self):
@@ -145,6 +166,8 @@ if __name__ == '__main__':
 
 	ex.logPanel = logPanel()
 	ex.logPanel.hide()
+
+	#window = createWindow(logPanel)
 
 	sys.exit(app.exec_())
 

