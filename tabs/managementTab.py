@@ -9,8 +9,6 @@ import extra, masterHelper
 import threading, time
 from functools import partial
 
-
-
 from windows import shell
 from windows import connectionSettings
 
@@ -46,6 +44,7 @@ class portScanner(QThread):
 
 	def run(self):
 		print("Starting Scan")
+
 		while True:
 			self.data = masterHelper.updateConns(self.mainLayout.mainWindow.allConns)
 			self.mainLayout.mainWindow.allConns = self.data[0]

@@ -14,7 +14,7 @@ from tabs import managementTab
 from tabs import listeningTab
 from windows import shell
 
-chunkSize = 1
+chunkSize = 8
 
 class createWindow(QThread):
 	signal = pyqtSignal('PyQt_PyObject')

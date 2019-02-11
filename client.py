@@ -3,10 +3,11 @@ data = [os.environ['COMPUTERNAME'], platform.system()]
 
 currentDirectory = os.getcwd()
 
-chunkSize = 1
+chunkSize = 8
+print("Data Size:", chunkSize * 1024)
 
 IP = 'localhost'
-PORT = 4444
+PORT = int(input("Port: "))
 
 def connect(host, port):
 	notConnected = True
